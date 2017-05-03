@@ -14,7 +14,7 @@
     <script src="citybike_punkte.json.js"></script>
     <script src="wanderwege_linien.json.js"></script>
 	<script src="maerkte_flaechen.json.js"></script>
-    <!--  TODO: GeoJSON Datenskript für Märkte/Flächen einbinden - https://www.data.gv.at/suche/?search-term=wien+m%C3%A4rkte&searchIn=catalog -->
+    <!--  OK TODO: GeoJSON Datenskript für Märkte/Flächen einbinden - https://www.data.gv.at/suche/?search-term=wien+m%C3%A4rkte&searchIn=catalog -->
 
     <style>
         h1 {
@@ -76,7 +76,7 @@
         };
         // Karte definieren und Ausschnitt setzen
         var map = L.map('wienMap', {
-            layers: [layers.wien1956],
+            layers: [layers.osm],
             center: [48.20833, 16.373064],
             zoom: 12
         });
@@ -109,7 +109,7 @@
                 });
             }
         }).bindPopup(function(layer) {
-            // TODO: HTML-Popupfenster mit BEMERKUNG, OBJECTID, KATEGORIE, ADRESSE, WEITERE_INF (als Link)
+            // OK TODO: HTML-Popupfenster mit BEMERKUNG, OBJECTID, KATEGORIE, ADRESSE, WEITERE_INF (als Link)
             var etc = '<h3>' + layer.feature.properties.BEMERKUNG + '</h3>';
 			etc += '<h4>' + layer.feature.properties.OBJECTID + '</h4>';
 			etc += '<h4>' + layer.feature.properties.KATEGORIE + '</h4>';
@@ -124,7 +124,9 @@
             pointToLayer: function(feature, latlng) {			
                 return L.marker(latlng, {
                     icon: L.icon({
-                        iconSize: [32, 32],
+                        //iconSize: [32, 32],
+						//iconAnchor: [32, 32],
+                        //popupAnchor: [32, 32],
                         iconUrl: "http://www.data.wien.gv.at/icons/citybike.png"
                     })
                 });
@@ -157,20 +159,43 @@
         // TODO: Flächen nach property INFOS_NACHHALTIG einfärben
         // TODO: HTML-Popupfenster mit NAME, MARKTKATEGORIE, INFOS_NACHHALTIG, URL_MARKTAMT (als Link)
         // WMTS-Layer Auswahl und Marker Auswahl Overlay hinzufügen
-        // TODO: WMTS-Layer Wien, Luftbild 1956 zur Hintergrundlayerauswahl hinzufügen
-        // TODO: GeoJSON Layer Märkte ein/aus Overlay hinzufügen
+        // OK TODO: WMTS-Layer Wien, Luftbild 1956 zur Hintergrundlayerauswahl hinzufügen
+        // OK TODO: GeoJSON Layer Märkte ein/aus Overlay hinzufügen
+		
+		var maerkteFlaechen = L.geoJSON(window.maerkteFlaechen, {
+            style: function(feature) {
+                var farbemarkt = "";
+                if (feature.properties.INFOS_NACHHALTIG == "-") {
+                    farbemarkt = "red";
+                } else {
+                    farbemarkt = "green";
+                }
+                return {
+                    color: farbemarkt
+                };
+            }
+        }).bindPopup(function(layer) {
+            var markt = '<h3>' + layer.feature.properties.NAME + '</h3>';
+			markt += '<h4>' + layer.feature.properties.MARKTKATEGORIE + '</h4>';
+			markt += '<h4>' + layer.feature.properties.INFOS_NACHHALTIG + '</h4>';
+            markt += '<a href="' + layer.feature.properties.URL_MARKTAMT + '">Infos</a>';
+            return markt;
+        }).addTo(map);
+			
         L.control.layers({
             "basemap.at - STANDARD": layers.geolandbasemap,
             "basemap.at - GRAU": layers.bmapgrau,
             "basemap.at - OVERLAY": layers.bmapoverlay,
             "basemap.at - HIGH-DPI": layers.bmaphidpi,
             "basemap.at - ORTHOFOTO": layers.bmaporthofoto30cm,
-            "OpenStreetMap": layers.osm,
-			"Wien Luftbild 1956": layers.wien1956
+			"Wien Luftbild 1956": layers.wien1956,
+            "OpenStreetMap": layers.osm
+
         }, {
             "Stadtspaziergang Stationen": punkteSpaziergang,
             "Citybike Standorte": punkteCitybike,
-            "Wandern in und um Wien": linienWanderwege
+            "Wandern in und um Wien": linienWanderwege,
+			"Märkte in Wien": maerkteFlaechen
         }).addTo(map)
         // Ausschnitt setzen
         // TODO: Ausschnitt auf Stationen des Stadtpaziergangs setzen
